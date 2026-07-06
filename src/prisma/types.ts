@@ -24,6 +24,8 @@ export interface EvidenceDocument {
   text: string;
   excerpt: string;
   error?: string;
+  sourceType?: "input" | "discovered";
+  relevanceHint?: "generic" | "candidate";
 }
 
 export interface PrismaAgentResult {

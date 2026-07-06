@@ -15,10 +15,19 @@ function extractHtmlText(html: string): { title?: string; text: string; discover
   const title = normalizeWhitespace($("title").first().text()) || undefined;
   const text = normalizeWhitespace($("body").text()).slice(0, MAX_TEXT);
   const discoveredUrls = $("a[href]")
-    .map((_, element) => $(element).attr("href") ?? "")
+    .map((_, element) => {
+      const href = $(element).attr("href") ?? "";
+      const label = normalizeWhitespace($(element).text()).toLowerCase();
+      return `${href} ${label}`.trim();
+    })
     .get()
-    .filter((href) => /\.pdf($|\?)/i.test(href) || /evaluation|bericht|report|download/i.test(href));
+    .filter((value) => /\.pdf($|\?|\s)/i.test(value) || /evaluation|evalua|bericht|report|download|manual|konzept|theorie/i.test(value))
+    .map((value) => value.split(" ")[0]);
   return { title, text, discoveredUrls };
+}
+
+function classifyDiscoveredUrl(url: string): "generic" | "candidate" {
+  return /bewertungskriterien|rating-criteria|downloads($|\/)/i.test(url) ? "generic" : "candidate";
 }
 
 function absolutizeUrls(baseUrl: string, links: string[]): string[] {
@@ -33,7 +42,7 @@ function absolutizeUrls(baseUrl: string, links: string[]): string[] {
     .filter((value): value is string => Boolean(value));
 }
 
-export async function scrapeUrl(url: string, timeoutMs = 20000): Promise<EvidenceDocument[]> {
+export async function scrapeUrl(url: string, timeoutMs = 20000, sourceType: "input" | "discovered" = "input"): Promise<EvidenceDocument[]> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -50,13 +59,13 @@ export async function scrapeUrl(url: string, timeoutMs = 20000): Promise<Evidenc
     const finalUrl = response.url;
 
     if (!response.ok) {
-      return [{ url, finalUrl, contentType, text: "", excerpt: "", error: `HTTP ${response.status}` }];
+      return [{ url, finalUrl, contentType, text: "", excerpt: "", error: `HTTP ${response.status}`, sourceType, relevanceHint: sourceType === "input" ? "candidate" : classifyDiscoveredUrl(finalUrl) }];
     }
 
     if (contentType?.includes("pdf") || /\.pdf($|\?)/i.test(finalUrl)) {
       const buffer = Buffer.from(await response.arrayBuffer());
       const text = (await extractPdfText(buffer)).slice(0, MAX_TEXT);
-      return [{ url, finalUrl, contentType, text, excerpt: text.slice(0, 1000) }];
+      return [{ url, finalUrl, contentType, text, excerpt: text.slice(0, 1000), sourceType, relevanceHint: sourceType === "input" ? "candidate" : classifyDiscoveredUrl(finalUrl) }];
     }
 
     const body = await response.text();
@@ -71,12 +80,18 @@ export async function scrapeUrl(url: string, timeoutMs = 20000): Promise<Evidenc
           contentType,
           text,
           excerpt: text.slice(0, 1000),
+          sourceType,
+          relevanceHint: sourceType === "input" ? "candidate" : classifyDiscoveredUrl(finalUrl),
         },
       ];
 
-      for (const discoveredUrl of absolutizeUrls(finalUrl, discoveredUrls).slice(0, 3)) {
-        if (discoveredUrl === finalUrl) continue;
-        const nested = await scrapeUrl(discoveredUrl, timeoutMs);
+      const candidateDiscoveredUrls = absolutizeUrls(finalUrl, discoveredUrls)
+        .filter((discoveredUrl) => discoveredUrl !== finalUrl)
+        .filter((discoveredUrl) => classifyDiscoveredUrl(discoveredUrl) === "candidate")
+        .slice(0, 2);
+
+      for (const discoveredUrl of candidateDiscoveredUrls) {
+        const nested = await scrapeUrl(discoveredUrl, timeoutMs, "discovered");
         results.push(...nested);
       }
 
@@ -84,7 +99,7 @@ export async function scrapeUrl(url: string, timeoutMs = 20000): Promise<Evidenc
     }
 
     const text = normalizeWhitespace(body).slice(0, MAX_TEXT);
-    return [{ url, finalUrl, contentType, text, excerpt: text.slice(0, 1000) }];
+    return [{ url, finalUrl, contentType, text, excerpt: text.slice(0, 1000), sourceType, relevanceHint: sourceType === "input" ? "candidate" : classifyDiscoveredUrl(finalUrl) }];
   } catch (error) {
     return [
       {
@@ -92,6 +107,8 @@ export async function scrapeUrl(url: string, timeoutMs = 20000): Promise<Evidenc
         text: "",
         excerpt: "",
         error: error instanceof Error ? error.message : String(error),
+        sourceType,
+        relevanceHint: sourceType === "input" ? "candidate" : "generic",
       },
     ];
   } finally {
@@ -104,7 +121,7 @@ export async function scrapeUrls(urls: string[]): Promise<EvidenceDocument[]> {
   const results: EvidenceDocument[] = [];
   const seen = new Set<string>();
   for (const url of unique) {
-    const docs = await scrapeUrl(url);
+    const docs = await scrapeUrl(url, 20000, "input");
     for (const doc of docs) {
       const key = doc.finalUrl ?? doc.url;
       if (seen.has(key)) continue;

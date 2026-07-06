@@ -42,6 +42,11 @@ Options:
 - `--retry-errors` retry rows previously marked as error in the checkpoint
 - `--model provider/model` choose a specific pi model
 - `--reasoning-dir artifacts/reasoning` store full per-row reasoning JSON files
+- `--review-queue artifacts/review-queue.json` collect low-confidence / uncertain rows for manual review
+
+## Review mode
+
+Rows with `confidence=niedrig` or non-empty `notes` are still written to Excel, but they are also added to a separate review queue JSON file for manual follow-up.
 
 ## Current scope
 

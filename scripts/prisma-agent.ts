@@ -5,6 +5,7 @@ import { markCheckpoint, loadCheckpoint, saveCheckpoint, isCheckpointDone } from
 import { runPrismaAnalysis } from "../src/prisma/agent.js";
 import { loadWorkbookRows, saveWorkbook, writeResult } from "../src/prisma/excel.js";
 import { writeReasoningFile } from "../src/prisma/reasoning.js";
+import { appendReviewQueue, shouldQueueForReview } from "../src/prisma/review.js";
 import { scrapeUrls } from "../src/prisma/scrape.js";
 
 function getArg(flag: string): string | undefined {
@@ -21,6 +22,7 @@ async function main(): Promise<void> {
   const output = getArg("--output") ?? "docs/Zellot_PRISMA-Checkliste.filled.xlsx";
   const checkpointPath = getArg("--checkpoint") ?? ".prisma-checkpoint.json";
   const reasoningDir = getArg("--reasoning-dir") ?? "artifacts/reasoning";
+  const reviewQueuePath = getArg("--review-queue") ?? "artifacts/review-queue.json";
   const requestedModel = getArg("--model");
   const limitArg = Number(getArg("--limit") ?? "0");
   const force = hasFlag("--force");
@@ -47,6 +49,7 @@ async function main(): Promise<void> {
   console.log(`Processing ${selectedRows.length} row(s)`);
   console.log(`Checkpoint: ${checkpointPath}`);
   console.log(`Reasoning dir: ${reasoningDir}`);
+  console.log(`Review queue: ${reviewQueuePath}`);
   if (requestedModel) console.log(`Requested model: ${requestedModel}`);
 
   for (const row of selectedRows) {
@@ -59,11 +62,17 @@ async function main(): Promise<void> {
         for (const doc of evidence) {
           console.log(`    - ${doc.url} :: ${doc.error ? `ERROR ${doc.error}` : `${doc.text.length} chars`}`);
         }
-        const result = await runPrismaAnalysis(row, evidence, requestedModel);
+        const filteredEvidence = evidence.filter((doc) => doc.relevanceHint !== "generic");
+        console.log(`  relevant evidence: ${filteredEvidence.length}/${evidence.length}`);
+        const result = await runPrismaAnalysis(row, filteredEvidence.length ? filteredEvidence : evidence, requestedModel);
         console.log(`  result: ${result.phase2.entscheidung} / ${result.finalDecision ?? "n/a"} / confidence=${result.confidence}`);
         writeResult(worksheet, row.rowNumber, result);
-        const reasoningPath = writeReasoningFile(reasoningDir, row, result, evidence);
+        const reasoningPath = writeReasoningFile(reasoningDir, row, result, filteredEvidence.length ? filteredEvidence : evidence);
         console.log(`  reasoning: ${reasoningPath}`);
+        if (shouldQueueForReview(result)) {
+          appendReviewQueue(reviewQueuePath, row, result, reasoningPath);
+          console.log(`  queued for review`);
+        }
         markCheckpoint(checkpoint, row.rowNumber, row.programName, "done");
         saveCheckpoint(checkpointPath, checkpoint);
         await saveWorkbook(workbook, output);

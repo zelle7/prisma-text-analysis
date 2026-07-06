@@ -41,7 +41,12 @@ async function resolveModel(requested?: string) {
   return { authStorage, modelRegistry, model };
 }
 
-export async function runPrismaAnalysis(row: PrismaRowInput, evidence: EvidenceDocument[], requestedModel?: string): Promise<PrismaAgentResult> {
+export async function runPrismaAnalysis(
+  row: PrismaRowInput,
+  evidence: EvidenceDocument[],
+  requestedModel?: string,
+  timeoutMs = Number(process.env.PRISMA_PI_TIMEOUT_MS ?? 90000),
+): Promise<PrismaAgentResult> {
   const settingsManager = SettingsManager.inMemory({
     compaction: { enabled: false },
   });
@@ -69,7 +74,7 @@ export async function runPrismaAnalysis(row: PrismaRowInput, evidence: EvidenceD
       }
     });
 
-    await withTimeout(session.prompt(buildPrismaPrompt(row, evidence)), 90000, "pi analysis");
+    await withTimeout(session.prompt(buildPrismaPrompt(row, evidence)), timeoutMs, "pi analysis");
     const parsed = JSON.parse(extractJson(output));
     return prismaAgentResultSchema.parse(parsed);
   } finally {
