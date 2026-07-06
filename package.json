@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "prisma-agent": "node --loader tsx scripts/prisma-agent.ts"
+    "prisma-agent": "node --import tsx scripts/prisma-agent.ts"
   },
   "dependencies": {
     "@earendil-works/pi-coding-agent": "^0.80.3",
