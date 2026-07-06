@@ -18,11 +18,20 @@ async function main(): Promise<void> {
   const selectedRows = limitArg > 0 ? rows.slice(0, limitArg) : rows;
   const limit = pLimit(1);
 
+  console.log(`Loaded ${rows.length} candidate rows from ${input}`);
+  console.log(`Processing ${selectedRows.length} row(s)`);
+
   for (const row of selectedRows) {
     await limit(async () => {
       console.log(`Processing row ${row.rowNumber}: ${row.programName}`);
+      console.log(`  urls: ${row.urls.length ? row.urls.join(", ") : "none"}`);
       const evidence = await scrapeUrls(row.urls);
+      console.log(`  scraped: ${evidence.length} document(s)`);
+      for (const doc of evidence) {
+        console.log(`    - ${doc.url} :: ${doc.error ? `ERROR ${doc.error}` : `${doc.text.length} chars`}`);
+      }
       const result = await runPrismaAnalysis(row, evidence);
+      console.log(`  result: ${result.phase2.entscheidung} / ${result.finalDecision ?? "n/a"}`);
       writeResult(worksheet, row.rowNumber, result);
     });
   }

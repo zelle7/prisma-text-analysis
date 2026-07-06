@@ -31,7 +31,9 @@ function extractHyperlink(cell: ExcelJS.Cell): string | undefined {
 
 export async function loadWorkbookRows(path: string): Promise<{ workbook: ExcelJS.Workbook; worksheet: ExcelJS.Worksheet; rows: PrismaRowInput[] }> {
   const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.readFile(path);
+  await workbook.xlsx.readFile(path, {
+    ignoreNodes: ["dataValidations", "conditionalFormatting", "extLst"],
+  });
   const worksheet = workbook.getWorksheet(SHEET_NAME) ?? workbook.worksheets[0];
   if (!worksheet) throw new Error("No worksheet found");
 
