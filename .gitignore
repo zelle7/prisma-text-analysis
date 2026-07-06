@@ -9,5 +9,8 @@ dist/
 *.filled.xlsx
 *.tmp.xlsx
 
+# local run state
+.prisma-checkpoint.json
+
 # local pi state
 .pi/

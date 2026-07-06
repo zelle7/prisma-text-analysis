@@ -28,6 +28,19 @@ The pi SDK needs a configured model/provider. Either:
 npm run prisma-agent -- --input docs/Zellot_PRISMA-Checkliste.xlsx --output docs/Zellot_PRISMA-Checkliste.filled.xlsx --limit 3
 ```
 
+### Resume / skip behavior
+
+By default the script skips rows that already have values in decision/reason columns or are marked done in the checkpoint file.
+
+```bash
+npm run prisma-agent -- --checkpoint .prisma-checkpoint.json
+```
+
+Options:
+
+- `--force` process rows even if they already have output
+- `--retry-errors` retry rows previously marked as error in the checkpoint
+
 ## Current scope
 
 Implemented first scaffold:

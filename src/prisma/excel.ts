@@ -62,6 +62,8 @@ export async function loadWorkbookRows(path: string): Promise<{ workbook: ExcelJ
       quellentyp: getCellText(row.getCell("E")),
       jahr: getCellText(row.getCell("F")) || null,
       urls,
+      existingDecision: getCellText(row.getCell("J")).trim(),
+      existingReason: getCellText(row.getCell("Q")).trim(),
     });
   }
 

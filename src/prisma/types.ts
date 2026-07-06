@@ -12,6 +12,8 @@ export interface PrismaRowInput {
   quellentyp?: string;
   jahr?: string | number | null;
   urls: string[];
+  existingDecision?: string;
+  existingReason?: string;
 }
 
 export interface EvidenceDocument {
