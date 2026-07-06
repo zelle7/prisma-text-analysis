@@ -28,6 +28,11 @@ async function main(): Promise<void> {
   const force = hasFlag("--force");
   const resumeErrors = hasFlag("--retry-errors");
 
+  let processedCount = 0;
+  let successCount = 0;
+  let errorCount = 0;
+  let reviewCount = 0;
+
   const { workbook, worksheet, rows } = await loadWorkbookRows(input);
   const checkpoint = loadCheckpoint(checkpointPath, input, output);
 
@@ -40,6 +45,7 @@ async function main(): Promise<void> {
   });
 
   const selectedRows = limitArg > 0 ? filteredRows.slice(0, limitArg) : filteredRows;
+  const skippedCount = rows.length - filteredRows.length;
   const limit = pLimit(1);
 
   mkdirSync(reasoningDir, { recursive: true });
@@ -55,6 +61,7 @@ async function main(): Promise<void> {
   for (const row of selectedRows) {
     await limit(async () => {
       try {
+        processedCount += 1;
         console.log(`Processing row ${row.rowNumber}: ${row.programName}`);
         console.log(`  urls: ${row.urls.length ? row.urls.join(", ") : "none"}`);
         const evidence = await scrapeUrls(row.urls);
@@ -71,12 +78,15 @@ async function main(): Promise<void> {
         console.log(`  reasoning: ${reasoningPath}`);
         if (shouldQueueForReview(result)) {
           appendReviewQueue(reviewQueuePath, row, result, reasoningPath);
+          reviewCount += 1;
           console.log(`  queued for review`);
         }
+        successCount += 1;
         markCheckpoint(checkpoint, row.rowNumber, row.programName, "done");
         saveCheckpoint(checkpointPath, checkpoint);
         await saveWorkbook(workbook, output);
       } catch (error) {
+        errorCount += 1;
         const message = error instanceof Error ? error.message : String(error);
         console.error(`  ERROR row ${row.rowNumber}: ${message}`);
         markCheckpoint(checkpoint, row.rowNumber, row.programName, "error", message);
@@ -87,6 +97,14 @@ async function main(): Promise<void> {
 
   await saveWorkbook(workbook, output);
   console.log(`Wrote: ${output}`);
+  console.log("\nSummary:");
+  console.log(`- total rows loaded: ${rows.length}`);
+  console.log(`- skipped before run: ${skippedCount}`);
+  console.log(`- attempted this run: ${selectedRows.length}`);
+  console.log(`- processed: ${processedCount}`);
+  console.log(`- succeeded: ${successCount}`);
+  console.log(`- errored: ${errorCount}`);
+  console.log(`- queued for review: ${reviewCount}`);
 }
 
 main().catch((error) => {
