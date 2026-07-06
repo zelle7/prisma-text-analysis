@@ -1,0 +1,56 @@
+Notizen für PRISMA Recherche
+
+Der erste Schritt ist die Recherche in den Datenbanken. Mit Gemini habe ich die Recherche auf einige 
+zentrale Datenbanken und Register eingeschränkt. Ich habe mithilfe von Filtereinstellungen eine erste 
+Vorauswahl der Maßnahmen getroffen. 
+
+In Phase 1 kopiere ich von den Treffern den Namen des Projekts, den Weblink, aber nur aus 
+der einen Datenbank. Die Projekte werden oft auf mehr Webseiten beschrieben. 
+(Hier stellt sich die Frage, wie wir das der KI sagen können, dass es noch mehr 
+Informationen auf anderen Webseiten gibt?)
+Jedes Projekt bekommt eine fortlaufende Nummer. Ich dokumentiere in der Excel-Vorlage auch 
+das Land der Datenbank, den Quellentyp (Quellentyp wäre Register und andere Quellen 
+für öffentliche Stellen wie Bundesministerien, Krankenkassen etc.; wissenschaftliche Datenbanken) 
+und wenn auffindbar das Jahr der Veröffentlichung des Projektes.
+Nachdem ich aus den Datenbanken die Projekte in die Excel-Vorlage übernommen habe, beginnt die 
+eigentliche PRISMA Prüfung, wo ich die Projekte mit meinen Aufnahmekriterien prüfe und entscheide, 
+ob das Projekt die Anforderungen eines Best Practices erfüllt oder ausgeschlossen werden muss. 
+Dadurch soll sich die Anzahl der Projekte, wie durch einen Trichter, verringern, bis am 
+Ende 15-20 Projekte für die Aufnahme in die Best Practice Sammlung übrig bleiben.
+
+Beginnend wird festgehalten, dass bei jeder Kriterienprüfung ein Kommentar mit einer Begründung 
+für einen Einschluss oder einen Auschluss gemacht werden soll (hier soll kurz beschrieben werden, 
+warum das Kriterien zutrifft oder warum es nicht zutrifft)
+
+In Phase 2 werden folgende Kriterien geprüft: Zielgruppe Sek. 2 (15-19 Jährige, bzw. generell 
+Jugendliche und junge Erwachsene), ist die Maßnahme für die Schule gedacht (wenn die Maßnahme einen 
+stationären Aufenthalt in einer Klinik einschließt oder es sich um Therapiesitzungen handelt, wird 
+sie ausgeschlossen). Am Ende von Phase 2 wird in Spalte J eine erste Entscheidungen darüber getroffen, 
+ob die Maßnahme eingeschlossen oder ausgeschlossen wird. Wenn alle Kriterien von Phase 2 mit 
+Ja beantworter werden, wird das Projekt eingeschlossen, sobald ein Kriterium mit Nein beantwortet 
+wird, wird das Projekt ausgeschlossen.
+
+In Phase 3 werden nur noch die Projekte überprüft, die in Phase 2 als eingeschlossen bewertet wurden.
+Die Kriterien von Phase 3:
+Theoriebasiert: damit ist gemeint, ob die Maßnahme auf einer wissenschaftlich fundierten Theorie 
+oder einem wissenschaftlichen Modell beruht (zB PERMA-Modell, transaktionales Stressmodell nach 
+Lazarus, Vulnerabilitäts-Stress-Coping-Konzept, Coping, Study-Demands-Resources-Modell von Lesener,
+Modell der Salutogenese von Antonovsky, Risiko- und Schutzfaktorenkonzept von Werner, Youth Resilience
+Process Model, Dynamic Network Approach von Kalisch, RALLY-Modell, Personzentierter Ansatz in der 
+Version von Fröhlich-Gilhoff und Rönnau-Böse und weitere ähnliche Modelle und Theorien)
+Evaluationsbericht vorhanden: damit ist gemeint, ob das Projekt oder die Maßnahme durch Wissenschafter 
+evaluiert wurde, das heißt ob die Wirksamkeit bei den Schüler:innen mit wissenschaftlichen Methoden 
+überprüft wurde und darüber ein Bericht als Download zur Verfügung steht transparent dokumentiert: 
+hiermit wird überprüft, ob die Dokumentation als Best Practice überhaupt möglich ist. (für diesen 
+Punkt wäre die Dokumentationsvorlage für die Best Practice Sammlung eventuell relevant, diese habe 
+ich aber noch nicht) Transferierbarkeit in österreichisches Schulsystem: damit wird geprüft, ob die 
+Maßnahme an österreichischesn Schulen mit den gegebenen Bedingungen überhaupt möglich wäre (ist vor 
+allem bei den internationalen Projekten notwendig, kann bei österreichischen Maßnahmen entfallen)
+niederschwelliger Zugang: hier ist gemeint, ob die Maßnahme einen einfachen Zugang für alle 
+Schüler:innen im Schulalltag hat Werden Informationen zu dem Kriterium gefunden wird "erfüllt" 
+eingetragen, werden keine Informationen gefunden oder trifft die Information auf dieses Projekt 
+nicht zu wird "nicht erfüllt" eingetragen
+
+Am Ende von Phase 3 wird wieder überprüft ob alle Kriterien mit "erfüllt" beantwortet werden können, 
+dann handelt es sich um einen Einschluss, sobald ein Kriterium mit "nicht erfüllt" beantwortet wird, 
+erfolgt ein Ausschluss. 

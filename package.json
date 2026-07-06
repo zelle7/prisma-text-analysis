@@ -1,0 +1,22 @@
+{
+  "name": "prisma-analyser",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prisma-agent": "node --loader tsx scripts/prisma-agent.ts"
+  },
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "^0.80.3",
+    "cheerio": "^1.2.0",
+    "exceljs": "^4.4.0",
+    "p-limit": "^7.3.0",
+    "undici": "^8.7.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2"
+  }
+}
