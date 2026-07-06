@@ -45,7 +45,7 @@ export async function runPrismaAnalysis(
   row: PrismaRowInput,
   evidence: EvidenceDocument[],
   requestedModel?: string,
-  timeoutMs = Number(process.env.PRISMA_PI_TIMEOUT_MS ?? 90000),
+  timeoutMs = Number(process.env.PRISMA_PI_TIMEOUT_MS ?? 300000),
 ): Promise<PrismaAgentResult> {
   const settingsManager = SettingsManager.inMemory({
     compaction: { enabled: false },

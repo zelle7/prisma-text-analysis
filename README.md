@@ -43,6 +43,7 @@ Options:
 - `--model provider/model` choose a specific pi model
 - `--reasoning-dir artifacts/reasoning` store full per-row reasoning JSON files
 - `--review-queue artifacts/review-queue.json` collect low-confidence / uncertain rows for manual review
+- `PRISMA_PI_TIMEOUT_MS` override per-row AI analysis timeout (default: `300000` = 5 minutes)
 
 ## Review mode
 
