@@ -11,6 +11,7 @@ dist/
 
 # local run state
 .prisma-checkpoint.json
+artifacts/
 
 # local pi state
 .pi/

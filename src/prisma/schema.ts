@@ -14,10 +14,17 @@ export const prismaAgentResultSchema = z.object({
     transferierbarkeitOesterreich: z.enum(["erfüllt", "nicht erfüllt"]),
     niederschwelligerZugang: z.enum(["erfüllt", "nicht erfüllt"]),
   }),
+  confidence: z.enum(["hoch", "mittel", "niedrig"]),
   finalDecision: z.enum(["Einschluss", "Ausschluss"]).optional(),
   begruendung: z.string().min(1),
   evidenceUrls: z.array(z.string().url()).default([]),
   notes: z.array(z.string()).optional(),
+  criterionReasoning: z
+    .object({
+      phase2: z.record(z.string(), z.string()).optional(),
+      phase3: z.record(z.string(), z.string()).optional(),
+    })
+    .optional(),
 });
 
 export type PrismaAgentResultSchema = z.infer<typeof prismaAgentResultSchema>;

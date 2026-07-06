@@ -40,6 +40,8 @@ Options:
 
 - `--force` process rows even if they already have output
 - `--retry-errors` retry rows previously marked as error in the checkpoint
+- `--model provider/model` choose a specific pi model
+- `--reasoning-dir artifacts/reasoning` store full per-row reasoning JSON files
 
 ## Current scope
 

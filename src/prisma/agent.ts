@@ -27,13 +27,12 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   });
 }
 
-async function resolveModel() {
+async function resolveModel(requested?: string) {
   const authStorage = AuthStorage.create();
   const modelRegistry = ModelRegistry.create(authStorage);
   const models = await modelRegistry.getAvailable();
   if (models.length === 0) throw new Error("No pi models available. Configure ~/.pi/agent/auth.json or provider API keys.");
 
-  const requested = process.env.PRISMA_PI_MODEL;
   const model = requested
     ? models.find((entry) => `${entry.provider}/${entry.id}` === requested || entry.id === requested)
     : models[0];
@@ -42,11 +41,11 @@ async function resolveModel() {
   return { authStorage, modelRegistry, model };
 }
 
-export async function runPrismaAnalysis(row: PrismaRowInput, evidence: EvidenceDocument[]): Promise<PrismaAgentResult> {
+export async function runPrismaAnalysis(row: PrismaRowInput, evidence: EvidenceDocument[], requestedModel?: string): Promise<PrismaAgentResult> {
   const settingsManager = SettingsManager.inMemory({
     compaction: { enabled: false },
   });
-  const { authStorage, modelRegistry, model } = await resolveModel();
+  const { authStorage, modelRegistry, model } = await resolveModel(requestedModel ?? process.env.PRISMA_PI_MODEL);
   console.log(`  using model: ${model.provider}/${model.id}`);
 
   const { session } = await createAgentSession({

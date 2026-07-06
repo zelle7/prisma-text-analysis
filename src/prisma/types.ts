@@ -40,10 +40,15 @@ export interface PrismaAgentResult {
     transferierbarkeitOesterreich: Phase3Status;
     niederschwelligerZugang: Phase3Status;
   };
+  confidence: "hoch" | "mittel" | "niedrig";
   finalDecision?: FinalDecision;
   begruendung: string;
   evidenceUrls: string[];
   notes?: string[];
+  criterionReasoning?: {
+    phase2?: Record<string, string>;
+    phase3?: Record<string, string>;
+  };
 }
 
 export interface WorkbookWriteResult {
