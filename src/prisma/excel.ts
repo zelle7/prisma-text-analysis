@@ -86,10 +86,11 @@ export async function loadWorkbookRows(path: string): Promise<{ workbook: ExcelJ
 function applyDecisionFill(cell: ExcelJS.Cell, value: string | undefined): void {
   if (!value) return;
   const normalized = value.toLowerCase();
+  const style = cell.style ?? {};
   if (normalized.includes("eingeschlossen") || normalized.includes("einschluss")) {
-    cell.fill = GREEN_FILL;
+    cell.style = { ...style, fill: GREEN_FILL };
   } else if (normalized.includes("ausgeschlossen") || normalized.includes("ausschluss")) {
-    cell.fill = RED_FILL;
+    cell.style = { ...style, fill: RED_FILL };
   }
 }
 
