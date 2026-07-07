@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { mkdirSync } from "node:fs";
+import { basename, dirname, extname, join } from "node:path";
 import pLimit from "p-limit";
 import { markCheckpoint, loadCheckpoint, saveCheckpoint, isCheckpointDone } from "../src/prisma/checkpoint.js";
 import { runPrismaAnalysis } from "../src/prisma/agent.js";
@@ -17,12 +18,31 @@ function hasFlag(flag: string): boolean {
   return process.argv.includes(flag);
 }
 
+function makeTimestampRunId(): string {
+  return new Date().toISOString().replace(/[:.]/g, "-");
+}
+
+function buildDefaultRunPaths(input: string, runId: string) {
+  const ext = extname(input) || ".xlsx";
+  const base = basename(input, ext);
+  const runDir = join("runs", runId);
+  return {
+    runDir,
+    output: join(runDir, `${base}.filled${ext}`),
+    checkpointPath: join(runDir, "checkpoint.json"),
+    reasoningDir: join(runDir, "reasoning"),
+    reviewQueuePath: join(runDir, "review-queue.json"),
+  };
+}
+
 async function main(): Promise<void> {
   const input = getArg("--input") ?? "docs/Zellot_PRISMA-Checkliste.xlsx";
-  const output = getArg("--output") ?? "docs/Zellot_PRISMA-Checkliste.filled.xlsx";
-  const checkpointPath = getArg("--checkpoint") ?? ".prisma-checkpoint.json";
-  const reasoningDir = getArg("--reasoning-dir") ?? "artifacts/reasoning";
-  const reviewQueuePath = getArg("--review-queue") ?? "artifacts/review-queue.json";
+  const runId = getArg("--run-id") ?? makeTimestampRunId();
+  const defaultPaths = buildDefaultRunPaths(input, runId);
+  const output = getArg("--output") ?? defaultPaths.output;
+  const checkpointPath = getArg("--checkpoint") ?? defaultPaths.checkpointPath;
+  const reasoningDir = getArg("--reasoning-dir") ?? defaultPaths.reasoningDir;
+  const reviewQueuePath = getArg("--review-queue") ?? defaultPaths.reviewQueuePath;
   const requestedModel = getArg("--model");
   const limitArg = Number(getArg("--limit") ?? "0");
   const force = hasFlag("--force");
@@ -48,8 +68,12 @@ async function main(): Promise<void> {
   const skippedCount = rows.length - filteredRows.length;
   const limit = pLimit(1);
 
+  mkdirSync(dirname(output), { recursive: true });
+  mkdirSync(dirname(checkpointPath), { recursive: true });
+  mkdirSync(dirname(reviewQueuePath), { recursive: true });
   mkdirSync(reasoningDir, { recursive: true });
 
+  console.log(`Run ID: ${runId}`);
   console.log(`Loaded ${rows.length} candidate rows from ${input}`);
   console.log(`Eligible rows after skip logic: ${filteredRows.length}`);
   console.log(`Processing ${selectedRows.length} row(s)`);
