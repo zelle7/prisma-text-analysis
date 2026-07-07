@@ -1,6 +1,18 @@
 import ExcelJS from "exceljs";
 import type { PrismaAgentResult, PrismaRowInput, WorkbookWriteResult } from "./types.js";
 
+const GREEN_FILL: ExcelJS.Fill = {
+  type: "pattern",
+  pattern: "solid",
+  fgColor: { argb: "FFC6EFCE" },
+};
+
+const RED_FILL: ExcelJS.Fill = {
+  type: "pattern",
+  pattern: "solid",
+  fgColor: { argb: "FFFFC7CE" },
+};
+
 const DATA_START_ROW = 4;
 const SHEET_NAME = "Tabelle1";
 
@@ -71,6 +83,16 @@ export async function loadWorkbookRows(path: string): Promise<{ workbook: ExcelJ
   return { workbook, worksheet, rows };
 }
 
+function applyDecisionFill(cell: ExcelJS.Cell, value: string | undefined): void {
+  if (!value) return;
+  const normalized = value.toLowerCase();
+  if (normalized.includes("eingeschlossen") || normalized.includes("einschluss")) {
+    cell.fill = GREEN_FILL;
+  } else if (normalized.includes("ausgeschlossen") || normalized.includes("ausschluss")) {
+    cell.fill = RED_FILL;
+  }
+}
+
 export function writeResult(worksheet: ExcelJS.Worksheet, rowNumber: number, result: PrismaAgentResult): void {
   worksheet.getCell(`F${rowNumber}`).value = result.jahr ?? "";
   worksheet.getCell(`G${rowNumber}`).value = result.phase2.zielgruppeSek2;
@@ -86,6 +108,9 @@ export function writeResult(worksheet: ExcelJS.Worksheet, rowNumber: number, res
   worksheet.getCell(`R${rowNumber}`).value = result.phase3Begruendung ?? "";
   worksheet.getCell(`U${rowNumber}`).value = result.begruendung;
   worksheet.getCell(`AA${rowNumber}`).value = result.manualReview;
+
+  applyDecisionFill(worksheet.getCell(`J${rowNumber}`), result.phase2.entscheidung);
+  applyDecisionFill(worksheet.getCell(`T${rowNumber}`), result.finalDecision);
 }
 
 export async function saveWorkbook(workbook: ExcelJS.Workbook, outputPath: string): Promise<WorkbookWriteResult> {
