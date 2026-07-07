@@ -38,7 +38,7 @@ async function main(): Promise<void> {
 
   const filteredRows = rows.filter((row) => {
     if (force) return true;
-    if (row.existingDecision || row.existingReason) return false;
+    if (row.existingDecision || row.existingReason || row.existingManualReview) return false;
     if (isCheckpointDone(checkpoint, row.rowNumber)) return false;
     if (!resumeErrors && checkpoint.entries[String(row.rowNumber)]?.status === "error") return false;
     return true;

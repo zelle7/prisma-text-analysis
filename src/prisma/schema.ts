@@ -1,12 +1,14 @@
 import { z } from "zod";
 
 export const prismaAgentResultSchema = z.object({
+  jahr: z.string().min(4).max(20).nullable(),
   phase2: z.object({
     zielgruppeSek2: z.enum(["Ja", "Nein"]),
     massnahmeFuerSchule: z.enum(["Ja", "Nein"]),
     stressbewaeltigungOderResilienz: z.enum(["Ja", "Nein"]),
     entscheidung: z.enum(["eingeschlossen", "ausgeschlossen"]),
   }),
+  phase2Begruendung: z.string().min(1).optional(),
   phase3: z.object({
     theoriebasiert: z.enum(["erfüllt", "nicht erfüllt"]),
     evaluationsberichtVorhanden: z.enum(["erfüllt", "nicht erfüllt"]),
@@ -14,7 +16,9 @@ export const prismaAgentResultSchema = z.object({
     transferierbarkeitOesterreich: z.enum(["erfüllt", "nicht erfüllt"]),
     niederschwelligerZugang: z.enum(["erfüllt", "nicht erfüllt"]),
   }),
+  phase3Begruendung: z.string().min(1).optional(),
   confidence: z.enum(["hoch", "mittel", "niedrig"]),
+  manualReview: z.enum(["Ja", "Nein"]),
   finalDecision: z.enum(["Einschluss", "Ausschluss"]).optional(),
   begruendung: z.string().min(1),
   evidenceUrls: z.array(z.string().url()).default([]),

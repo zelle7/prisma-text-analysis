@@ -17,7 +17,7 @@ export interface ReviewQueueFile {
 }
 
 export function shouldQueueForReview(result: PrismaAgentResult): boolean {
-  return result.confidence === "niedrig" || Boolean(result.notes?.length);
+  return result.manualReview === "Ja" || result.confidence === "niedrig" || Boolean(result.notes?.length);
 }
 
 export function appendReviewQueue(path: string, row: PrismaRowInput, result: PrismaAgentResult, reasoningPath: string): void {

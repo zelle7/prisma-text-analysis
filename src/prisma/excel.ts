@@ -48,7 +48,7 @@ export async function loadWorkbookRows(path: string): Promise<{ workbook: ExcelJ
     const textUrls = [
       getCellText(row.getCell("B")),
       getCellText(row.getCell("C")),
-      getCellText(row.getCell("Q")),
+      getCellText(row.getCell("G")),
     ].flatMap(splitUrls);
 
     const urls = [...new Set([hyperlink, ...textUrls].filter((value): value is string => Boolean(value)))];
@@ -63,7 +63,8 @@ export async function loadWorkbookRows(path: string): Promise<{ workbook: ExcelJ
       jahr: getCellText(row.getCell("F")) || null,
       urls,
       existingDecision: getCellText(row.getCell("J")).trim(),
-      existingReason: getCellText(row.getCell("Q")).trim(),
+      existingReason: getCellText(row.getCell("U")).trim(),
+      existingManualReview: getCellText(row.getCell("AA")).trim(),
     });
   }
 
@@ -71,16 +72,20 @@ export async function loadWorkbookRows(path: string): Promise<{ workbook: ExcelJ
 }
 
 export function writeResult(worksheet: ExcelJS.Worksheet, rowNumber: number, result: PrismaAgentResult): void {
+  worksheet.getCell(`F${rowNumber}`).value = result.jahr ?? "";
   worksheet.getCell(`G${rowNumber}`).value = result.phase2.zielgruppeSek2;
   worksheet.getCell(`H${rowNumber}`).value = result.phase2.massnahmeFuerSchule;
   worksheet.getCell(`I${rowNumber}`).value = result.phase2.stressbewaeltigungOderResilienz;
   worksheet.getCell(`J${rowNumber}`).value = result.phase2.entscheidung;
-  worksheet.getCell(`K${rowNumber}`).value = result.phase3.theoriebasiert;
-  worksheet.getCell(`L${rowNumber}`).value = result.phase3.evaluationsberichtVorhanden;
-  worksheet.getCell(`M${rowNumber}`).value = result.phase3.transparentDokumentiert;
-  worksheet.getCell(`N${rowNumber}`).value = result.phase3.transferierbarkeitOesterreich;
-  worksheet.getCell(`O${rowNumber}`).value = result.phase3.niederschwelligerZugang;
-  worksheet.getCell(`Q${rowNumber}`).value = result.begruendung;
+  worksheet.getCell(`K${rowNumber}`).value = result.phase2Begruendung ?? "";
+  worksheet.getCell(`M${rowNumber}`).value = result.phase3.theoriebasiert;
+  worksheet.getCell(`N${rowNumber}`).value = result.phase3.evaluationsberichtVorhanden;
+  worksheet.getCell(`O${rowNumber}`).value = result.phase3.transparentDokumentiert;
+  worksheet.getCell(`P${rowNumber}`).value = result.phase3.transferierbarkeitOesterreich;
+  worksheet.getCell(`Q${rowNumber}`).value = result.phase3.niederschwelligerZugang;
+  worksheet.getCell(`R${rowNumber}`).value = result.phase3Begruendung ?? "";
+  worksheet.getCell(`U${rowNumber}`).value = result.begruendung;
+  worksheet.getCell(`AA${rowNumber}`).value = result.manualReview;
 }
 
 export async function saveWorkbook(workbook: ExcelJS.Workbook, outputPath: string): Promise<WorkbookWriteResult> {

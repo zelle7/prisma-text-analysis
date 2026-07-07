@@ -14,6 +14,7 @@ export interface PrismaRowInput {
   urls: string[];
   existingDecision?: string;
   existingReason?: string;
+  existingManualReview?: string;
 }
 
 export interface EvidenceDocument {
@@ -29,12 +30,14 @@ export interface EvidenceDocument {
 }
 
 export interface PrismaAgentResult {
+  jahr: string | null;
   phase2: {
     zielgruppeSek2: Phase2JaNein;
     massnahmeFuerSchule: Phase2JaNein;
     stressbewaeltigungOderResilienz: Phase2JaNein;
     entscheidung: Phase2Decision;
   };
+  phase2Begruendung?: string;
   phase3: {
     theoriebasiert: Phase3Status;
     evaluationsberichtVorhanden: Phase3Status;
@@ -42,7 +45,9 @@ export interface PrismaAgentResult {
     transferierbarkeitOesterreich: Phase3Status;
     niederschwelligerZugang: Phase3Status;
   };
+  phase3Begruendung?: string;
   confidence: "hoch" | "mittel" | "niedrig";
+  manualReview: "Ja" | "Nein";
   finalDecision?: FinalDecision;
   begruendung: string;
   evidenceUrls: string[];
