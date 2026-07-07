@@ -1,6 +1,6 @@
 # prisma-analyser
 
-Local PRISMA screening helper for `docs/Zellot_PRISMA-Checkliste.xlsx`.
+Local PRISMA screening helper for a PRISMA checklist workbook.
 
 ## What this project does
 
@@ -64,8 +64,10 @@ Examples:
 
 ## Basic run
 
+Use your own workbook path:
+
 ```bash
-npm run prisma-agent -- --input docs/Zellot_PRISMA-Checkliste.xlsx --limit 3
+npm run prisma-agent -- --input /path/to/your/Zellot_PRISMA-Checkliste.xlsx --limit 3
 ```
 
 ## Runthroughs
@@ -97,7 +99,7 @@ Default run outputs:
 
 ```bash
 npm run prisma-agent -- \
-  --input docs/Zellot_PRISMA-Checkliste.xlsx \
+  --input /path/to/your/Zellot_PRISMA-Checkliste.xlsx \
   --run-id first-pass-2026-07 \
   --model nvidia/meta/llama-3.1-70b-instruct
 ```
@@ -141,6 +143,15 @@ For every processed row, a JSON file is written with:
 - timestamps
 
 This is useful if you want to inspect why the agent decided something.
+
+## Workbook template note
+
+The original private workbook is intentionally **not** included in this public repository.
+See:
+
+- `docs/sample/README.md`
+
+for the expected workbook structure.
 
 ## Prompt / agent behavior
 
@@ -209,6 +220,7 @@ Key files:
 - some sites block scraping or return incomplete content
 - evidence filtering is heuristic, not perfect
 - workbook formulas are preserved, but Excel remains the source for final manual review
+- webpage and PDF contents are sent to the selected model provider; do not use confidential input data unless your provider setup is appropriate for that
 
 ## License
 

@@ -4,6 +4,7 @@ dist/
 .env.*
 *.log
 .DS_Store
+.~lock.*
 
 # generated workbooks
 *.filled.xlsx

@@ -2,6 +2,9 @@
   "name": "prisma-analyser",
   "version": "0.1.0",
   "private": false,
+  "description": "Local PRISMA workbook screening pipeline using the pi SDK agent",
+  "license": "MIT",
+  "keywords": ["prisma", "screening", "excel", "pi", "agent"],
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
