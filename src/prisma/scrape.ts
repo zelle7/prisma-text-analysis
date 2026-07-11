@@ -4,6 +4,8 @@ import { extractPdfText } from "./pdf.js";
 import type { EvidenceDocument } from "./types.js";
 
 const MAX_TEXT = 20000;
+const MAX_DISCOVERED_URLS = 5;
+const DISCOVERED_KEYWORDS = /evaluation|evalua|bericht|report|download|manual|konzept|theorie|about|programm|program|project|ueber|über|info|implementation|material/i;
 
 function normalizeWhitespace(input: string): string {
   return input.replace(/\s+/g, " ").trim();
@@ -21,7 +23,7 @@ function extractHtmlText(html: string): { title?: string; text: string; discover
       return `${href} ${label}`.trim();
     })
     .get()
-    .filter((value) => /\.pdf($|\?|\s)/i.test(value) || /evaluation|evalua|bericht|report|download|manual|konzept|theorie/i.test(value))
+    .filter((value) => /\.pdf($|\?|\s)/i.test(value) || DISCOVERED_KEYWORDS.test(value))
     .map((value) => value.split(" ")[0]);
   return { title, text, discoveredUrls };
 }
@@ -88,7 +90,7 @@ export async function scrapeUrl(url: string, timeoutMs = 20000, sourceType: "inp
       const candidateDiscoveredUrls = absolutizeUrls(finalUrl, discoveredUrls)
         .filter((discoveredUrl) => discoveredUrl !== finalUrl)
         .filter((discoveredUrl) => classifyDiscoveredUrl(discoveredUrl) === "candidate")
-        .slice(0, 2);
+        .slice(0, MAX_DISCOVERED_URLS);
 
       for (const discoveredUrl of candidateDiscoveredUrls) {
         const nested = await scrapeUrl(discoveredUrl, timeoutMs, "discovered");

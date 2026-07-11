@@ -74,9 +74,9 @@ export async function loadWorkbookRows(path: string): Promise<{ workbook: ExcelJ
       quellentyp: getCellText(row.getCell("E")),
       jahr: getCellText(row.getCell("F")) || null,
       urls,
-      existingDecision: getCellText(row.getCell("J")).trim(),
-      existingReason: getCellText(row.getCell("U")).trim(),
-      existingManualReview: getCellText(row.getCell("AA")).trim(),
+      existingDecision: getCellText(row.getCell("S")).trim(),
+      existingReason: getCellText(row.getCell("T")).trim(),
+      existingManualReview: [getCellText(row.getCell("L")).trim(), getCellText(row.getCell("Q")).trim()].filter(Boolean).join(" / "),
     });
   }
 
@@ -101,17 +101,18 @@ export function writeResult(worksheet: ExcelJS.Worksheet, rowNumber: number, res
   worksheet.getCell(`I${rowNumber}`).value = result.phase2.stressbewaeltigungOderResilienz;
   worksheet.getCell(`J${rowNumber}`).value = result.phase2.entscheidung;
   worksheet.getCell(`K${rowNumber}`).value = result.phase2Begruendung ?? "";
+  worksheet.getCell(`L${rowNumber}`).value = result.phase2ManualReview;
   worksheet.getCell(`M${rowNumber}`).value = result.phase3.theoriebasiert;
   worksheet.getCell(`N${rowNumber}`).value = result.phase3.evaluationsberichtVorhanden;
   worksheet.getCell(`O${rowNumber}`).value = result.phase3.transparentDokumentiert;
-  worksheet.getCell(`P${rowNumber}`).value = result.phase3.transferierbarkeitOesterreich;
-  worksheet.getCell(`Q${rowNumber}`).value = result.phase3.niederschwelligerZugang;
-  worksheet.getCell(`R${rowNumber}`).value = result.phase3Begruendung ?? "";
-  worksheet.getCell(`U${rowNumber}`).value = result.begruendung;
-  worksheet.getCell(`AA${rowNumber}`).value = result.manualReview;
+  worksheet.getCell(`P${rowNumber}`).value = result.phase3Begruendung ?? "";
+  worksheet.getCell(`Q${rowNumber}`).value = result.phase3ManualReview;
+  worksheet.getCell(`R${rowNumber}`).value = result.berichtManuellSuchen;
+  worksheet.getCell(`S${rowNumber}`).value = result.finalDecision;
+  worksheet.getCell(`T${rowNumber}`).value = result.endbegruendung;
 
   applyDecisionFill(worksheet.getCell(`J${rowNumber}`), result.phase2.entscheidung);
-  applyDecisionFill(worksheet.getCell(`T${rowNumber}`), result.finalDecision);
+  applyDecisionFill(worksheet.getCell(`S${rowNumber}`), result.finalDecision);
 }
 
 export async function saveWorkbook(workbook: ExcelJS.Workbook, outputPath: string): Promise<WorkbookWriteResult> {

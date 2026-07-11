@@ -1,7 +1,8 @@
 export type Phase2JaNein = "Ja" | "Nein";
 export type Phase2Decision = "eingeschlossen" | "ausgeschlossen";
-export type Phase3Status = "erfüllt" | "nicht erfüllt";
+export type Phase3Status = "erfüllt" | "nicht erfüllt" | "nicht geprüft";
 export type FinalDecision = "Einschluss" | "Ausschluss";
+export type ManualReviewStatus = "Ja" | "Nein";
 
 export interface PrismaRowInput {
   rowNumber: number;
@@ -38,18 +39,19 @@ export interface PrismaAgentResult {
     entscheidung: Phase2Decision;
   };
   phase2Begruendung?: string;
+  phase2ManualReview: ManualReviewStatus;
   phase3: {
     theoriebasiert: Phase3Status;
     evaluationsberichtVorhanden: Phase3Status;
     transparentDokumentiert: Phase3Status;
-    transferierbarkeitOesterreich: Phase3Status;
-    niederschwelligerZugang: Phase3Status;
   };
   phase3Begruendung?: string;
+  phase3ManualReview: ManualReviewStatus;
+  berichtManuellSuchen: ManualReviewStatus;
   confidence: "hoch" | "mittel" | "niedrig";
-  manualReview: "Ja" | "Nein";
-  finalDecision?: FinalDecision;
-  begruendung: string;
+  manualReview: ManualReviewStatus;
+  finalDecision: FinalDecision;
+  endbegruendung: string;
   evidenceUrls: string[];
   notes?: string[];
   criterionReasoning?: {

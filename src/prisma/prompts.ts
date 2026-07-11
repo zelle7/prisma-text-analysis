@@ -1,4 +1,15 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import type { EvidenceDocument, PrismaRowInput } from "./types.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const promptTemplate = readFileSync(join(__dirname, "prompt-template.md"), "utf8");
+
+function fillTemplate(template: string, values: Record<string, string>): string {
+  return Object.entries(values).reduce((output, [key, value]) => output.replaceAll(`{{${key}}}`, value), template);
+}
 
 export function buildPrismaPrompt(row: PrismaRowInput, evidence: EvidenceDocument[]): string {
   const evidenceText = evidence
@@ -18,5 +29,15 @@ export function buildPrismaPrompt(row: PrismaRowInput, evidence: EvidenceDocumen
     })
     .join("\n\n");
 
-  return `Du analysierst Programme für eine PRISMA-Checkliste zur Auswahl von Best Practices im schulischen Kontext.\n\nBeurteile das Programm streng anhand der folgenden Kriterien und gib ausschließlich JSON zurück. Keine Markdown-Ausgabe. Keine Einleitung.\n\nProgramm-Metadaten:\n- Zeile: ${row.rowNumber}\n- Nr.: ${row.nr ?? ""}\n- Name des Programms: ${row.programName}\n- Datenbank: ${row.datenbank ?? ""}\n- Land: ${row.land ?? ""}\n- Quellentyp: ${row.quellentyp ?? ""}\n- Jahr (falls schon vorhanden): ${row.jahr ?? ""}\n- URLs: ${row.urls.join(", ")}\n\nBestimme auch das Veröffentlichungsjahr des Projekts, wenn es aus den Quellen ableitbar ist. Wenn nicht auffindbar, gib null zurück.\n\nPhase 2 Kriterien:\n- zielgruppeSek2: Ja, wenn sich die Maßnahme an 15-19 Jährige oder allgemein Jugendliche/junge Erwachsene richtet.\n- massnahmeFuerSchule: Ja, wenn die Maßnahme für die Schule bzw. den Schulalltag gedacht ist. Nein bei Klinik, stationärem Aufenthalt oder Therapiesitzungen.\n- stressbewaeltigungOderResilienz: Ja, wenn die Maßnahme Stressbewältigung, Resilienz oder psychosoziale Gesundheit fördert.\n- entscheidung: eingeschlossen nur wenn alle drei Phase-2-Kriterien Ja sind, sonst ausgeschlossen.\n\nPhase 3 Kriterien (nur inhaltlich bewerten, auch wenn Phase 2 ausgeschlossen ist):\n- theoriebasiert\n- evaluationsberichtVorhanden\n- transparentDokumentiert\n- transferierbarkeitOesterreich\n- niederschwelligerZugang\n\nFür Phase 3 immer nur \"erfüllt\" oder \"nicht erfüllt\" ausgeben. Wenn Informationen fehlen, dann \"nicht erfüllt\".\n\nZusätzlich:\n- jahr: Veröffentlichungsjahr als String wie \"2014\" oder null wenn unbekannt\n- begruendung: kurze, präzise Endbegründung auf Deutsch, 2-6 Sätze\n- phase2Begruendung: kurze Begründung speziell für Phase 2\n- phase3Begruendung: kurze Begründung speziell für Phase 3\n- confidence: hoch | mittel | niedrig je nachdem wie eindeutig die Evidenz ist\n- manualReview: Ja wenn Unsicherheit besteht oder manuell geprüft werden sollte, sonst Nein\n- evidenceUrls: nur URLs verwenden, die wirklich für die Entscheidung relevant waren\n- notes: optionale kurze Stichpunkte zu Unsicherheiten\n- criterionReasoning: kurze Einzelbegründungen pro Kriterium\n- finalDecision: Einschluss nur wenn Phase 2 eingeschlossen und alle Phase-3-Kriterien erfüllt sind, sonst Ausschluss\n\nErwartetes JSON-Schema:\n{\n  \"jahr\": \"2014\" | null,\n  \"phase2\": {\n    \"zielgruppeSek2\": \"Ja\" | \"Nein\",\n    \"massnahmeFuerSchule\": \"Ja\" | \"Nein\",\n    \"stressbewaeltigungOderResilienz\": \"Ja\" | \"Nein\",\n    \"entscheidung\": \"eingeschlossen\" | \"ausgeschlossen\"\n  },\n  \"phase2Begruendung\": \"...\",\n  \"phase3\": {\n    \"theoriebasiert\": \"erfüllt\" | \"nicht erfüllt\",\n    \"evaluationsberichtVorhanden\": \"erfüllt\" | \"nicht erfüllt\",\n    \"transparentDokumentiert\": \"erfüllt\" | \"nicht erfüllt\",\n    \"transferierbarkeitOesterreich\": \"erfüllt\" | \"nicht erfüllt\",\n    \"niederschwelligerZugang\": \"erfüllt\" | \"nicht erfüllt\"\n  },\n  \"phase3Begruendung\": \"...\",\n  \"confidence\": \"hoch\" | \"mittel\" | \"niedrig\",\n  \"manualReview\": \"Ja\" | \"Nein\",\n  \"finalDecision\": \"Einschluss\" | \"Ausschluss\",\n  \"begruendung\": \"...\",\n  \"evidenceUrls\": [\"https://...\"],\n  \"notes\": [\"...\"],\n  \"criterionReasoning\": {\n    \"phase2\": {\n      \"zielgruppeSek2\": \"...\"\n    },\n    \"phase3\": {\n      \"theoriebasiert\": \"...\"\n    }\n  }\n}\n\nQuellenmaterial:\n${evidenceText}`;
+  return fillTemplate(promptTemplate, {
+    rowNumber: String(row.rowNumber),
+    nr: String(row.nr ?? ""),
+    programName: row.programName,
+    datenbank: row.datenbank ?? "",
+    land: row.land ?? "",
+    quellentyp: row.quellentyp ?? "",
+    jahr: row.jahr == null ? "" : String(row.jahr),
+    urls: row.urls.join(", "),
+    evidenceText,
+  });
 }
