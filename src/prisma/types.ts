@@ -28,6 +28,7 @@ export interface EvidenceDocument {
   error?: string;
   sourceType?: "input" | "discovered";
   relevanceHint?: "generic" | "candidate";
+  artifactPath?: string;
 }
 
 export interface PrismaAgentResult {

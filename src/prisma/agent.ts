@@ -1,7 +1,13 @@
 import { AuthStorage, createAgentSession, ModelRegistry, SessionManager, SettingsManager } from "@earendil-works/pi-coding-agent";
 import { prismaAgentResultSchema } from "./schema.js";
 import { buildPrismaPrompt } from "./prompts.js";
-import type { EvidenceDocument, PrismaAgentResult, PrismaRowInput } from "./types.js";
+import type { EvidenceDocument, ManualReviewStatus, PrismaAgentResult, PrismaRowInput } from "./types.js";
+
+export interface PrismaAnalysisOptions {
+  requestedModel?: string;
+  timeoutMs?: number;
+  verbose?: boolean;
+}
 
 function extractJson(text: string): string {
   const trimmed = text.trim();
@@ -27,6 +33,27 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   });
 }
 
+function normalizeManualReview(value: unknown, fallback: ManualReviewStatus = "Ja"): ManualReviewStatus {
+  if (typeof value !== "string") return fallback;
+  const normalized = value.trim().toLowerCase();
+  if (["ja", "j", "yes", "y", "true", "1"].includes(normalized)) return "Ja";
+  if (["nein", "n", "no", "false", "0"].includes(normalized)) return "Nein";
+  return fallback;
+}
+
+function normalizeAgentResult(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object") return raw;
+  const result = raw as Record<string, unknown>;
+  result.phase2ManualReview = normalizeManualReview(result.phase2ManualReview, "Ja");
+  result.phase3ManualReview = normalizeManualReview(result.phase3ManualReview, "Ja");
+  result.berichtManuellSuchen = normalizeManualReview(result.berichtManuellSuchen, "Ja");
+  result.manualReview = normalizeManualReview(
+    result.manualReview,
+    result.phase2ManualReview === "Ja" || result.phase3ManualReview === "Ja" || result.berichtManuellSuchen === "Ja" ? "Ja" : "Nein",
+  );
+  return result;
+}
+
 async function resolveModel(requested?: string) {
   const authStorage = AuthStorage.create();
   const modelRegistry = ModelRegistry.create(authStorage);
@@ -44,9 +71,10 @@ async function resolveModel(requested?: string) {
 export async function runPrismaAnalysis(
   row: PrismaRowInput,
   evidence: EvidenceDocument[],
-  requestedModel?: string,
-  timeoutMs = Number(process.env.PRISMA_PI_TIMEOUT_MS ?? 300000),
+  options: PrismaAnalysisOptions = {},
 ): Promise<PrismaAgentResult> {
+  const { requestedModel, verbose = false } = options;
+  const timeoutMs = options.timeoutMs ?? Number(process.env.PRISMA_PI_TIMEOUT_MS ?? 300000);
   const settingsManager = SettingsManager.inMemory({
     compaction: { enabled: false },
   });
@@ -65,17 +93,35 @@ export async function runPrismaAnalysis(
 
   try {
     let output = "";
+    let deltaCount = 0;
+    let lastProgressLog = Date.now();
+    if (verbose) {
+      console.log(`  agent prompt started (${evidence.length} evidence docs, timeout=${timeoutMs}ms)`);
+    }
     session.subscribe((event) => {
+      if (verbose) {
+        console.log(`  [agent event] ${event.type}`);
+      }
       if (event.type === "message_update" && event.assistantMessageEvent.type === "text_delta") {
         output += event.assistantMessageEvent.delta;
+        deltaCount += 1;
+        if (verbose) {
+          process.stdout.write(event.assistantMessageEvent.delta);
+        } else if (Date.now() - lastProgressLog >= 10000) {
+          console.log(`  agent still running... received ${output.length} chars in ${deltaCount} delta(s)`);
+          lastProgressLog = Date.now();
+        }
       }
       if (event.type === "agent_end") {
+        if (verbose && output && !output.endsWith("\n")) {
+          process.stdout.write("\n");
+        }
         console.log("  agent finished");
       }
     });
 
     await withTimeout(session.prompt(buildPrismaPrompt(row, evidence)), timeoutMs, "pi analysis");
-    const parsed = JSON.parse(extractJson(output));
+    const parsed = normalizeAgentResult(JSON.parse(extractJson(output)));
     return prismaAgentResultSchema.parse(parsed);
   } finally {
     session.dispose();

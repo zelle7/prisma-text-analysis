@@ -5,7 +5,7 @@ import pLimit from "p-limit";
 import { markCheckpoint, loadCheckpoint, saveCheckpoint, isCheckpointDone } from "../src/prisma/checkpoint.js";
 import { runPrismaAnalysis } from "../src/prisma/agent.js";
 import { loadWorkbookRows, saveWorkbook, writeResult } from "../src/prisma/excel.js";
-import { writeReasoningFile } from "../src/prisma/reasoning.js";
+import { writeEvidenceArtifacts, writeReasoningFile } from "../src/prisma/reasoning.js";
 import { appendReviewQueue, shouldQueueForReview } from "../src/prisma/review.js";
 import { scrapeUrls } from "../src/prisma/scrape.js";
 
@@ -32,6 +32,7 @@ function buildDefaultRunPaths(input: string, runId: string) {
     checkpointPath: join(runDir, "checkpoint.json"),
     reasoningDir: join(runDir, "reasoning"),
     reviewQueuePath: join(runDir, "review-queue.json"),
+    evidenceDir: join(runDir, "evidence"),
   };
 }
 
@@ -43,10 +44,12 @@ async function main(): Promise<void> {
   const checkpointPath = getArg("--checkpoint") ?? defaultPaths.checkpointPath;
   const reasoningDir = getArg("--reasoning-dir") ?? defaultPaths.reasoningDir;
   const reviewQueuePath = getArg("--review-queue") ?? defaultPaths.reviewQueuePath;
+  const evidenceDir = defaultPaths.evidenceDir;
   const requestedModel = getArg("--model");
   const limitArg = Number(getArg("--limit") ?? "0");
   const force = hasFlag("--force");
   const resumeErrors = hasFlag("--retry-errors");
+  const verbose = hasFlag("--verbose");
 
   let processedCount = 0;
   let successCount = 0;
@@ -72,6 +75,7 @@ async function main(): Promise<void> {
   mkdirSync(dirname(checkpointPath), { recursive: true });
   mkdirSync(dirname(reviewQueuePath), { recursive: true });
   mkdirSync(reasoningDir, { recursive: true });
+  mkdirSync(evidenceDir, { recursive: true });
 
   console.log(`Run ID: ${runId}`);
   console.log(`Loaded ${rows.length} candidate rows from ${input}`);
@@ -80,7 +84,9 @@ async function main(): Promise<void> {
   console.log(`Checkpoint: ${checkpointPath}`);
   console.log(`Reasoning dir: ${reasoningDir}`);
   console.log(`Review queue: ${reviewQueuePath}`);
+  console.log(`Evidence dir: ${evidenceDir}`);
   if (requestedModel) console.log(`Requested model: ${requestedModel}`);
+  if (verbose) console.log("Verbose mode: enabled");
 
   for (const row of selectedRows) {
     await limit(async () => {
@@ -88,17 +94,21 @@ async function main(): Promise<void> {
         processedCount += 1;
         console.log(`Processing row ${row.rowNumber}: ${row.programName}`);
         console.log(`  urls: ${row.urls.length ? row.urls.join(", ") : "none"}`);
-        const evidence = await scrapeUrls(row.urls);
+        const evidence = await scrapeUrls(row.urls, { verbose, programName: row.programName });
         console.log(`  scraped: ${evidence.length} document(s)`);
         for (const doc of evidence) {
           console.log(`    - ${doc.url} :: ${doc.error ? `ERROR ${doc.error}` : `${doc.text.length} chars`}`);
         }
-        const filteredEvidence = evidence.filter((doc) => doc.relevanceHint !== "generic");
+        const evidenceWithArtifacts = writeEvidenceArtifacts(evidenceDir, row, evidence);
+        const filteredEvidence = evidenceWithArtifacts.filter((doc) => doc.relevanceHint !== "generic");
         console.log(`  relevant evidence: ${filteredEvidence.length}/${evidence.length}`);
-        const result = await runPrismaAnalysis(row, filteredEvidence.length ? filteredEvidence : evidence, requestedModel);
+        const result = await runPrismaAnalysis(row, filteredEvidence.length ? filteredEvidence : evidenceWithArtifacts, {
+          requestedModel,
+          verbose,
+        });
         console.log(`  result: ${result.phase2.entscheidung} / ${result.finalDecision ?? "n/a"} / confidence=${result.confidence}`);
         writeResult(worksheet, row.rowNumber, result);
-        const reasoningPath = writeReasoningFile(reasoningDir, row, result, filteredEvidence.length ? filteredEvidence : evidence);
+        const reasoningPath = writeReasoningFile(reasoningDir, row, result, filteredEvidence.length ? filteredEvidence : evidenceWithArtifacts);
         console.log(`  reasoning: ${reasoningPath}`);
         if (shouldQueueForReview(result)) {
           appendReviewQueue(reviewQueuePath, row, result, reasoningPath);
