@@ -87,6 +87,23 @@ Each evidence artifact contains:
 - scrape error if any
 - extracted text used for inspection
 
+## Setup
+
+This project uses the pi Coding Agent SDK. Before running the PRISMA analyser, make sure pi is configured locally so the script can access a model.
+
+Helpful pi documentation:
+- Main pi documentation: https://www.npmjs.com/package/@earendil-works/pi-coding-agent
+- Local pi README used by this project setup: `/home/linuxbrew/.linuxbrew/lib/node_modules/@earendil-works/pi-coding-agent/README.md`
+- Provider and model setup in the pi docs: `docs/providers.md`
+
+Typical setup steps:
+1. Install dependencies with `npm install`
+2. Configure a pi-compatible model/provider
+3. Make sure authentication is available, for example via `~/.pi/agent/auth.json` or provider API keys
+4. Optionally choose a model explicitly with `--model <provider/model>`
+
+If no model is configured, the analyser cannot call the agent and will fail with a model/setup error.
+
 ## CLI usage
 
 Basic run:
