@@ -126,6 +126,30 @@ Useful flags:
 - `--force` ignore existing workbook values and process rows anyway
 - `--model <provider/model>` choose a specific pi model
 
+## Mermaid diagrams
+
+German Mermaid source files are stored in:
+- `docs/mermaid/`
+
+PNG export script:
+- `scripts/export-mermaid-pngs.sh`
+
+Prerequisite:
+```bash
+npm install
+```
+
+This installs the project-local Mermaid CLI dependency used for PNG export.
+On some Linux systems, Mermaid export may also require the bundled Puppeteer browser download.
+
+Export all diagram PNGs:
+```bash
+bash scripts/export-mermaid-pngs.sh
+```
+
+Generated PNGs are written to:
+- `docs/images/`
+
 ## Notes
 
 - results still require human review for important decisions

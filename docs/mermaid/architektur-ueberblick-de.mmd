@@ -1,0 +1,37 @@
+flowchart LR
+    U[Benutzer / Forschungsteam]
+
+    subgraph TS[TypeScript-Tool]
+        A[Excel-Checkliste einlesen]
+        B[Links je Zeile sammeln]
+        C[Webseiten und Dokumente abrufen]
+        D[Texte aus Webseiten und PDFs extrahieren]
+        E[Analysepaket strukturiert vorbereiten]
+        F[KI-Antwort prüfen und validieren]
+        G[Ergebnisse in Excel zurückschreiben]
+        H[Begründungen, Evidenz, Checkpoints und Prüfliste speichern]
+    end
+
+    subgraph AG[KI-Agent]
+        I[Gesammelte Evidenz auswerten]
+        J[PRISMA-Kriterien beurteilen]
+        K[Begründung und Empfehlung erzeugen]
+    end
+
+    U --> A
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> I
+    I --> J
+    J --> K
+    K --> F
+    F --> G
+    F --> H
+    G --> U
+    H --> U
+
+    style TS fill:#E3F2FD,stroke:#1E88E5,stroke-width:2px,color:#0D47A1
+    style AG fill:#FFF3E0,stroke:#FB8C00,stroke-width:2px,color:#E65100
+    style U fill:#F3E5F5,stroke:#8E24AA,stroke-width:2px,color:#4A148C

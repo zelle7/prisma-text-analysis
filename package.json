@@ -4,7 +4,13 @@
   "private": false,
   "description": "Local PRISMA workbook screening pipeline using the pi SDK agent",
   "license": "MIT",
-  "keywords": ["prisma", "screening", "excel", "pi", "agent"],
+  "keywords": [
+    "prisma",
+    "screening",
+    "excel",
+    "pi",
+    "agent"
+  ],
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -20,6 +26,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^11.16.0",
     "tsx": "^4.20.3",
     "typescript": "^5.9.2"
   }
